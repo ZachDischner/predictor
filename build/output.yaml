@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Serverless Predictor API
+Parameters:
+  Environment:
+    Default: dev
+    Type: String
+Resources:
+  CacheTable:
+    Properties:
+      PrimaryKey:
+        Name: PredictionId
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+    Type: AWS::Serverless::SimpleTable
+  GetSimplePredictionLambda:
+    Properties:
+      CodeUri: s3://simple-predictor/76f39351c59724a83a61e08d4c3c6383
+      Environment:
+        Variables:
+          DyanmoTableName:
+            Ref: CacheTable
+      Events:
+        GetSimplePredictionCall:
+          Properties:
+            Method: get
+            Path: /model/{modelId}
+          Type: Api
+      FunctionName:
+        Fn::Sub: GetSimplePrediction-${Environment}
+      Handler: index.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonDynamoDBFullAccess
+      Runtime: python3.6
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  PostSimplePredictionModelLambda:
+    Properties:
+      CodeUri: s3://simple-predictor/76f39351c59724a83a61e08d4c3c6383
+      Environment:
+        Variables:
+          DyanmoTableName:
+            Ref: CacheTable
+      Events:
+        GetSimplePredictionCall:
+          Properties:
+            Method: post
+            Path: /model/{modelId}
+          Type: Api
+      FunctionName:
+        Fn::Sub: PostSimplePredictionModel-${Environment}
+      Handler: index.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonDynamoDBFullAccess
+      Runtime: python3.6
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  PutSimplePredictionModelLambda:
+    Properties:
+      CodeUri: s3://simple-predictor/76f39351c59724a83a61e08d4c3c6383
+      Environment:
+        Variables:
+          DyanmoTableName:
+            Ref: CacheTable
+      Events:
+        GetSimplePredictionCall:
+          Properties:
+            Method: put
+            Path: /model/{modelId}
+          Type: Api
+      FunctionName:
+        Fn::Sub: PutSimplePredictionModel-${Environment}
+      Handler: index.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonDynamoDBFullAccess
+      Runtime: python3.6
+      Timeout: 30
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

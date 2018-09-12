@@ -1,0 +1,3 @@
+SRC_S3BUCKET=simple-predictor
+REGION=us-west-2
+STACKNAME=PredictorStack

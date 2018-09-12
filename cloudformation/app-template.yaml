@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Predictor API
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+
+Resources:
+  GetSimplePredictionLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub GetSimplePrediction-${Environment}
+      Handler: index.lambda_handler
+      Runtime: python3.6
+      # Note, CodeUri is used by cloudformation to find the code RELATIVE TO THE TEMPLATE
+      # It then zips it, uploads it, and subs in the s3 bucket location
+      CodeUri: ../_build #../src 
+      MemorySize: 128 
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess  
+      Events:
+        GetSimplePredictionCall:
+          Type: Api
+          Properties:
+            Path: /model/{modelId}
+            Method: get
+      Environment:
+        Variables:
+          DyanmoTableName: !Ref CacheTable
+
+  PutSimplePredictionModelLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub PutSimplePredictionModel-${Environment}
+      Handler: index.lambda_handler
+      Runtime: python3.6
+      CodeUri: ../_build #src 
+      MemorySize: 128 
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess  
+      Events:
+        GetSimplePredictionCall:
+          Type: Api
+          Properties:
+            Path: /model/{modelId}
+            Method: put
+      Environment:
+        Variables:
+          DyanmoTableName: !Ref CacheTable
+
+  PostSimplePredictionModelLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub PostSimplePredictionModel-${Environment}
+      Handler: index.lambda_handler
+      Runtime: python3.6
+      CodeUri: ../_build #src 
+      MemorySize: 128 
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess  
+      Events:
+        GetSimplePredictionCall:
+          Type: Api
+          Properties:
+            Path: /model/{modelId}
+            Method: post
+      Environment:
+        Variables:
+          DyanmoTableName: !Ref CacheTable
+
+  CacheTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: PredictionId
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
